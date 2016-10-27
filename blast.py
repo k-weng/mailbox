@@ -1,20 +1,10 @@
-"""
-To Dos
-    Different from email option
-    Access and edit google sheet
-    Parser for arguments
-    Actual mail blast
-    JSON templates
-
-"""
-
 import os
 import sys
 import smtplib
-from email import create_email
 from getpass import getpass
 import json
-from argpaser import ArgumentParser
+from argparse import ArgumentParser
+from mail import create_email
 
 def build_parser():
     parser = ArgumentParser(description="Mail-blast application")
@@ -23,34 +13,57 @@ def build_parser():
             dest='from_addr', help='sender email',
             metavar='FROM', required=True)
 
-    return parser
+    parser.add_argument('-t', '-email',
+            dest='email_id', help='email subject',
+            metavar="EMAIL", required=True)
 
-def load_json():
+    return parser
 
 
 def main():
 
-	parser = build_parser()
-	options = parser.parse_args()
+    parser = build_parser()
+    options = parser.parse_args()
 
-	from_addr = options.from_addr
+    from_addr = options.from_addr
+    email_file = options.email_id+ ".json"
 
-	to_addr = "wengk97@gmail.com"
-	subj = "HI"
-	msg = "df"
+    server = smtplib.SMTP('smtp.gmail.com', 587)
+    server.starttls()
 
-	server = smtplib.SMTP('smtp.gmail.com', 587)
-	server.starttls()
+    gmail = raw_input("G-Mail Address: ")
+    password = getpass(prompt="Password: ")
 
-	password = getpass(prompt="Email Password: ")
+    try:
+        server.login(gmail, password)
+    except SMTPAuthenticationError, e:
+        print "Wrong combination of email and password. Try again."
+        sys.exit(1)
 
-	try:
-		server.login(from_addr, password)
-	except SMTPAuthenticationError:
-		print "Wrong combination of email and password. Try again."
-		sys.exit(1)
+    with open(email_file) as json_data:
+	    data = json.load(json_data, strict=False)
+	    json_data.close()
 
-	email = create_email(from_addr, to_addr, subj, body, )
+    sending_emails = True
+
+    while sending_emails:
+        to_addr = raw_input("To: ")
+        while not to_addr:
+            to_addr = raw_input("To: ")
+        name = raw_input("Name of Recipient: ")
+
+        cc = data["cc"]
+        subj = data["subject"]
+        body = data["message"].encode('ascii', 'ignore')
+
+        email = create_email(from_addr, to_addr, subj, body.replace('[name]', name), cc)
+
+        server.sendmail(from_addr, to_addr, email)
+        print "Email sent..."
+
+        more = raw_input("More? (y/n): ")
+        if more.lower() != "y":
+            sending_emails = False
 
 if __name__ == '__main__':
     main()
