@@ -5,6 +5,7 @@ from getpass import getpass
 import json
 from argparse import ArgumentParser
 from mail import create_email
+from template import get_fields
 
 def build_parser():
     parser = ArgumentParser(description="Mail-blast application")
@@ -56,7 +57,12 @@ def main():
         subj = data["subject"]
         body = data["message"].encode('ascii', 'ignore')
 
-        email = create_email(from_addr, to_addr, subj, body.replace('[name]', name), cc)
+        fields = get_fields(body)
+        for field in fields:
+            inp = raw_input(field[1:-1] + ": ")
+            body = body.replace(field, inp)
+
+        email = create_email(from_addr, to_addr, subj, body, cc)
 
         server.sendmail(from_addr, to_addr, email)
         print "Email sent..."

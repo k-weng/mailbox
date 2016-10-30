@@ -1,0 +1,13 @@
+{
+	"cc": "None",
+	"subject": "Email Template",
+	"message": "
+		<html>
+		  <head></head>
+		  <body>
+		    <p>This is a template for mailbox emails</p>
+		    <p>Example of a field: [Field]</p>
+		  </body>
+		</html>
+		"	
+}
