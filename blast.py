@@ -11,7 +11,7 @@ def build_parser():
     parser = ArgumentParser(description="Mail-blast application")
 
     parser.add_argument('-f','-from', 
-            dest='from_addr', help='sender email',
+            dest='from_address', help='sender email',
             metavar='FROM', required=True)
 
     parser.add_argument('-t', '-email',
@@ -22,11 +22,10 @@ def build_parser():
 
 
 def main():
-
     parser = build_parser()
     options = parser.parse_args()
 
-    from_addr = options.from_addr
+    from_address = options.from_address
     email_file = options.email_id+ ".json"
 
     server = smtplib.SMTP('smtp.gmail.com', 587)
@@ -48,26 +47,40 @@ def main():
     sending_emails = True
 
     while sending_emails:
-        to_addr = raw_input("To: ")
-        while not to_addr:
-            to_addr = raw_input("To: ")
-        name = raw_input("Name of Recipient: ")
+    
+        to_address = raw_input("To: ")
+        while not to_address:
+            to_address = raw_input("To: ")
 
-        cc = data["cc"]
-        subj = data["subject"]
-        body = data["message"].encode('ascii', 'ignore')
+        message = data["message"].encode('ascii', 'ignore')
 
-        fields = get_fields(body)
+        print "\nTime to fill out the fields in the email: "
+        fields = get_fields(message)
         for field in fields:
             inp = raw_input(field[1:-1] + ": ")
-            body = body.replace(field, inp)
+            message = message.replace(field, inp)
 
-        email = create_email(from_addr, to_addr, subj, body, cc)
+        email_content = {}
+        email_content['subject'] = data['subject']
+        email_content['from_address'] = from_address
+        email_content['to_address'] = to_address
+        email_content['message'] = message
 
-        server.sendmail(from_addr, to_addr, email)
+        if data['cc'] != "None":
+            email_content['cc'] = data['cc']
+
+        if data['image'] != "None":
+            email_content['image'] = data['image']
+
+        if data['pdf'] != "None":
+            email_content['pdf'] = data['pdf']
+
+        email = create_email(**email_content)
+
+        server.sendmail(from_address, to_address, email)
         print "Email sent..."
 
-        more = raw_input("More? (y/n): ")
+        more = raw_input("\nMore? (Y/N): ")
         if more.lower() != "y":
             sending_emails = False
 

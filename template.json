@@ -1,6 +1,8 @@
 {
+	"image": "None",
 	"cc": "None",
 	"subject": "Email Template",
+	"pdf": "None",
 	"message": "
 		<html>
 		  <head></head>
